@@ -12,6 +12,12 @@ import org.springframework.stereotype.Service;
 
 public class UserService {
 
+    @Value("${rabbitmq.exchange.name}")
+    private String exchangeName;
+
+    @Value("${rabbitmq.routing.key}")
+    private String routingKey;
+
     private final UserRepository repository;
     private final RabbitTemplate rabbitTemplate;
 
@@ -24,6 +30,7 @@ public class UserService {
         User user = new User();
         BeanUtils.copyProperties(userDTO, user);
         user = repository.save(user);
+        rabbitTemplate.convertAndSend(exchangeName, routingKey, user);
         return new UserDTO(user);
     }
 }
