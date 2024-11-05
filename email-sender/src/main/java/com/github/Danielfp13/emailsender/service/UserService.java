@@ -3,6 +3,7 @@ package com.github.Danielfp13.emailsender.service;
 import com.github.Danielfp13.emailsender.dtos.UserDTO;
 import com.github.Danielfp13.emailsender.entities.User;
 import com.github.Danielfp13.emailsender.repositories.UserRepository;
+import com.github.Danielfp13.emailsender.service.exception.ObjectNotFoundException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,5 +33,17 @@ public class UserService {
         user = repository.save(user);
         rabbitTemplate.convertAndSend(exchangeName, routingKey, user);
         return new UserDTO(user);
+    }
+
+    public UserDTO findById(Long id) {
+        return new UserDTO(repository.findById(id).orElseThrow(() ->
+                new ObjectNotFoundException("There is no registered user with id = " + id + ".")));
+    }
+
+    public UserDTO update(UserDTO userDTO, Long id) {
+        User user = new User();
+        BeanUtils.copyProperties(userDTO, user, "id");
+        user.setId(id);
+        return new UserDTO(repository.save(user));
     }
 }
